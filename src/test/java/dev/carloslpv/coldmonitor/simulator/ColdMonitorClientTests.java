@@ -23,7 +23,11 @@ class ColdMonitorClientTests {
 
 	private static final UUID EQUIPMENT_ID = UUID.fromString("0b8f5d1e-4a43-4d3e-9a55-6f1f2c3b4d5e");
 
+	private static final String API_KEY = "simulator-test-key-0123456789";
+
 	private final List<String> requests = new CopyOnWriteArrayList<>();
+
+	private final List<String> apiKeys = new CopyOnWriteArrayList<>();
 
 	private HttpServer server;
 
@@ -33,7 +37,8 @@ class ColdMonitorClientTests {
 	void startServer() throws IOException {
 		this.server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
 		this.server.start();
-		this.client = new ColdMonitorClient(URI.create("http://127.0.0.1:" + this.server.getAddress().getPort()));
+		this.client = new ColdMonitorClient(URI.create("http://127.0.0.1:" + this.server.getAddress().getPort()),
+				API_KEY);
 	}
 
 	@AfterEach
@@ -96,6 +101,15 @@ class ColdMonitorClientTests {
 	}
 
 	@Test
+	void sendsTheApiKeyOnEveryRequest() throws Exception {
+		respond("/api/v1/equipment", 200, "[]");
+
+		this.client.listEquipment();
+
+		assertThat(this.apiKeys).containsExactly(API_KEY);
+	}
+
+	@Test
 	void reportsProblemDetailOnError() {
 		respond("/api/v1/equipment/" + EQUIPMENT_ID + "/readings", 409, """
 				{"type":"about:blank","title":"Conflict","status":409,
@@ -111,6 +125,7 @@ class ColdMonitorClientTests {
 	private void respond(String path, int status, String body) {
 		this.server.createContext(path, (exchange) -> {
 			this.requests.add(describe(exchange));
+			this.apiKeys.add(String.valueOf(exchange.getRequestHeaders().getFirst("X-API-Key")));
 			var bytes = body.getBytes(StandardCharsets.UTF_8);
 			exchange.getResponseHeaders().add("Content-Type", "application/json");
 			exchange.sendResponseHeaders(status, bytes.length);

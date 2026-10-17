@@ -26,12 +26,18 @@ public final class ColdMonitorClient {
 
 	private final URI apiBase;
 
+	private final String apiKey;
+
 	private final HttpClient http;
 
 	private final JsonMapper json;
 
-	public ColdMonitorClient(URI backendUrl) {
+	/**
+	 * @param apiKey device API key sent in {@code X-API-Key} on every request, or {@code null} to send none
+	 */
+	public ColdMonitorClient(URI backendUrl, String apiKey) {
 		this.apiBase = URI.create(backendUrl + "/api/v1/");
+		this.apiKey = apiKey;
 		this.http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 		this.json = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 	}
@@ -66,7 +72,11 @@ public final class ColdMonitorClient {
 
 	private HttpResponse<String> send(HttpRequest.Builder request, int expectedStatus)
 			throws IOException, InterruptedException {
-		var built = request.timeout(REQUEST_TIMEOUT).header("Accept", "application/json").build();
+		request.timeout(REQUEST_TIMEOUT).header("Accept", "application/json");
+		if (this.apiKey != null) {
+			request.header("X-API-Key", this.apiKey);
+		}
+		var built = request.build();
 		var response = this.http.send(built, HttpResponse.BodyHandlers.ofString());
 		if (response.statusCode() != expectedStatus) {
 			throw new BackendException(built.method() + " " + built.uri().getPath(), response.statusCode(),

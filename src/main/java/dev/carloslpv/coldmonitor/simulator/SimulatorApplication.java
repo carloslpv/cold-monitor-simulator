@@ -52,7 +52,7 @@ public final class SimulatorApplication {
 	}
 
 	static int run(SimulatorConfig config, List<EquipmentProfile> profiles) throws InterruptedException {
-		var client = new ColdMonitorClient(config.backendUrl());
+		var client = new ColdMonitorClient(config.backendUrl(), config.apiKey());
 		var random = (config.seed() != null) ? new SplittableRandom(config.seed()) : new SplittableRandom();
 		var stats = new ReadingStats();
 
@@ -62,6 +62,15 @@ public final class SimulatorApplication {
 		List<RemoteEquipment> existing;
 		try {
 			existing = connect(client);
+		}
+		catch (BackendException ex) {
+			if (ex.status() == 401 || ex.status() == 403) {
+				Console.error("The backend refused the API key (HTTP %d). Set --api-key or COLD_MONITOR_API_KEY to the "
+						+ "backend's DEVICE_API_KEY.", ex.status());
+				return 1;
+			}
+			Console.error("Backend unavailable at %s: %s", config.backendUrl(), ex.getMessage());
+			return 1;
 		}
 		catch (IOException ex) {
 			Console.error("Backend unavailable at %s: %s", config.backendUrl(), ex.getMessage());

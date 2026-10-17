@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
  * Simulator settings. Each option can be given as a command-line flag or an environment variable; flags win.
  *
  * @param backendUrl base URL of the cold-monitor backend
+ * @param apiKey device API key sent in the {@code X-API-Key} header, or {@code null} for a backend without login
  * @param interval time between two readings of the same sensor
  * @param excursionProbability chance, per reading, that an out-of-range excursion starts
  * @param equipmentFile JSON file with the equipment to simulate, or {@code null} for the bundled list
@@ -21,6 +22,7 @@ import java.util.regex.Pattern;
  */
 public record SimulatorConfig(
 		URI backendUrl,
+		String apiKey,
 		Duration interval,
 		double excursionProbability,
 		Path equipmentFile,
@@ -32,6 +34,7 @@ public record SimulatorConfig(
 
 			Options (environment variable in brackets):
 			  --backend-url <url>              Backend base URL [COLD_MONITOR_URL] (default: http://localhost:8080)
+			  --api-key <key>                  Device API key of the backend [COLD_MONITOR_API_KEY]
 			  --interval <duration>            Time between readings per sensor [SIM_INTERVAL] (default: 5s)
 			  --excursion-probability <0..1>   Chance per reading of starting an excursion [SIM_EXCURSION_PROBABILITY] (default: 0.02)
 			  --equipment <file>               JSON file with the equipment to simulate [SIM_EQUIPMENT_FILE] (default: bundled list)
@@ -44,6 +47,7 @@ public record SimulatorConfig(
 
 	private static final Map<String, String> ENV_BY_OPTION = Map.of(
 			"backend-url", "COLD_MONITOR_URL",
+			"api-key", "COLD_MONITOR_API_KEY",
 			"interval", "SIM_INTERVAL",
 			"excursion-probability", "SIM_EXCURSION_PROBABILITY",
 			"equipment", "SIM_EQUIPMENT_FILE",
@@ -83,12 +87,20 @@ public record SimulatorConfig(
 		if (backendUrl.getScheme() == null || backendUrl.getHost() == null) {
 			throw new IllegalArgumentException("backend-url must be an absolute http(s) URL");
 		}
-		return new SimulatorConfig(backendUrl,
+		return new SimulatorConfig(backendUrl, options.get("api-key"),
 				parseDuration("interval", options.getOrDefault("interval", "5s")),
 				parseDouble("excursion-probability", options.getOrDefault("excursion-probability", "0.02")),
 				options.containsKey("equipment") ? Path.of(options.get("equipment")) : null,
 				options.containsKey("seed") ? parseLong("seed", options.get("seed")) : null,
 				options.containsKey("duration") ? parseDuration("duration", options.get("duration")) : null);
+	}
+
+	@Override
+	public String toString() {
+		// never print the API key
+		return "SimulatorConfig[backendUrl=" + backendUrl + ", apiKey=" + ((apiKey != null) ? "***" : "none")
+				+ ", interval=" + interval + ", excursionProbability=" + excursionProbability + ", equipmentFile="
+				+ equipmentFile + ", seed=" + seed + ", duration=" + duration + "]";
 	}
 
 	private static void parseArgs(String[] args, Map<String, String> options) {

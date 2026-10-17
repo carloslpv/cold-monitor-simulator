@@ -18,6 +18,7 @@ class SimulatorConfigTests {
 		var config = SimulatorConfig.parse(new String[0], Map.of());
 
 		assertThat(config.backendUrl()).isEqualTo(URI.create("http://localhost:8080"));
+		assertThat(config.apiKey()).isNull();
 		assertThat(config.interval()).isEqualTo(Duration.ofSeconds(5));
 		assertThat(config.excursionProbability()).isEqualTo(0.02);
 		assertThat(config.equipmentFile()).isNull();
@@ -28,11 +29,13 @@ class SimulatorConfigTests {
 	@Test
 	void readsEnvironmentVariables() {
 		var config = SimulatorConfig.parse(new String[0],
-				Map.of("COLD_MONITOR_URL", "http://backend:8080/", "SIM_INTERVAL", "500ms",
+				Map.of("COLD_MONITOR_URL", "http://backend:8080/", "COLD_MONITOR_API_KEY", "key-from-env",
+						"SIM_INTERVAL", "500ms",
 						"SIM_EXCURSION_PROBABILITY", "0.1", "SIM_EQUIPMENT_FILE", "my.json", "SIM_SEED", "7",
 						"SIM_DURATION", "PT2M"));
 
 		assertThat(config.backendUrl()).isEqualTo(URI.create("http://backend:8080"));
+		assertThat(config.apiKey()).isEqualTo("key-from-env");
 		assertThat(config.interval()).isEqualTo(Duration.ofMillis(500));
 		assertThat(config.excursionProbability()).isEqualTo(0.1);
 		assertThat(config.equipmentFile()).isEqualTo(Path.of("my.json"));
@@ -47,6 +50,14 @@ class SimulatorConfigTests {
 
 		assertThat(config.interval()).isEqualTo(Duration.ofSeconds(2));
 		assertThat(config.backendUrl()).isEqualTo(URI.create("http://other:9090"));
+	}
+
+	@Test
+	void keepsTheApiKeyOutOfToString() {
+		var config = parse("--api-key", "secret-device-key");
+
+		assertThat(config.apiKey()).isEqualTo("secret-device-key");
+		assertThat(config.toString()).doesNotContain("secret-device-key");
 	}
 
 	@Test
