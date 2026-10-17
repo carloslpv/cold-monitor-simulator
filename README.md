@@ -9,7 +9,10 @@
 Sensor simulator for **cold-monitor**. It plays the part of the temperature sensors in fridges, freezers and cold rooms:
 it registers a set of equipment in the [cold-monitor backend](https://github.com/carloslpv/cold-monitor-backend) and
 then sends each one a temperature reading on a fixed interval, so the backend, alerts and dashboard have realistic data
-to work with.
+to work with. It also keeps the [public demo](https://github.com/carloslpv/cold-monitor-infra) moving.
+
+The architecture diagram, screenshots and an overview of the whole system are in
+[cold-monitor-infra](https://github.com/carloslpv/cold-monitor-infra).
 
 ### How it simulates
 
@@ -24,6 +27,24 @@ to work with.
   stored in the backend are used. Inactive equipment is skipped.
 - If the backend is not up yet, the simulator retries for about 30 seconds. Failed readings are logged and the sensor
   keeps going.
+
+### Technical decisions
+
+- **One virtual thread per sensor.** A real sensor is a loop: read, send, sleep. Each simulated sensor is written
+  exactly like that, with a blocking `HttpClient` call and `Thread.sleep`, on its own virtual thread
+  (`Executors.newVirtualThreadPerTaskExecutor()`). The code stays as simple as one sensor, while hundreds of them cost
+  a few kilobytes each and need no thread pool sizing or callbacks.
+- **No framework.** It is a small command-line tool: plain Java with Jackson and the JDK's HTTP client starts in a
+  fraction of a second and ships as a single shaded jar. Spring would add startup time and nothing it needs.
+- **A temperature model, not random numbers.** Uniform noise would cross the limits all the time and never look like a
+  fridge. A mean-reverting random walk (Ornstein-Uhlenbeck) plus a compressor cycle stays inside the band, and
+  excursions ramp, hold and recover the way a door left open does, which is what exercises the backend's excursion
+  and recovery logic.
+- **Reproducible runs.** `--seed` feeds a `SplittableRandom`, split once per sensor, so the same seed gives the same
+  series for every sensor regardless of thread scheduling. That makes a bug seen in the backend easy to replay.
+- **Behaves like a device.** It authenticates with the device API key, never prints it, registers missing equipment,
+  respects thresholds already stored in the backend, waits for a backend that is still starting, and keeps going after
+  a failed send instead of crashing.
 
 ### Requirements
 
@@ -135,7 +156,11 @@ src/main/java/dev/carloslpv/coldmonitor/simulator
 Simulador de sensores do **cold-monitor**. Ele faz o papel dos sensores de temperatura de geladeiras, freezers e câmaras
 frias: cadastra um conjunto de equipamentos no [backend do cold-monitor](https://github.com/carloslpv/cold-monitor-backend)
 e depois envia, para cada um, uma leitura de temperatura em intervalo fixo, para que o backend, os alertas e o dashboard
-tenham dados realistas para trabalhar.
+tenham dados realistas para trabalhar. É ele também que mantém a
+[demo pública](https://github.com/carloslpv/cold-monitor-infra) em movimento.
+
+O diagrama de arquitetura, os screenshots e a visão geral do sistema inteiro estão no
+[cold-monitor-infra](https://github.com/carloslpv/cold-monitor-infra).
 
 ### Como a simulação funciona
 
@@ -151,6 +176,26 @@ tenham dados realistas para trabalhar.
   limites gravados no backend. Equipamentos inativos são ignorados.
 - Se o backend ainda não estiver no ar, o simulador tenta de novo por cerca de 30 segundos. Leituras que falham são
   registradas no log e o sensor continua.
+
+### Decisões técnicas
+
+- **Uma virtual thread por sensor.** Um sensor real é um laço: ler, enviar, dormir. Cada sensor simulado é escrito
+  exatamente assim, com uma chamada bloqueante do `HttpClient` e `Thread.sleep`, na própria virtual thread
+  (`Executors.newVirtualThreadPerTaskExecutor()`). O código fica simples como um único sensor, enquanto centenas deles
+  custam poucos kilobytes cada e dispensam dimensionar pool de threads ou escrever callbacks.
+- **Sem framework.** É uma ferramenta de linha de comando pequena: Java puro com Jackson e o cliente HTTP do JDK sobe
+  em fração de segundo e é distribuído como um único jar. O Spring acrescentaria tempo de inicialização e nada de que
+  ele precise.
+- **Um modelo de temperatura, não números aleatórios.** Ruído uniforme cruzaria os limites o tempo todo e nunca
+  pareceria uma geladeira. Um passeio aleatório com reversão à média (Ornstein-Uhlenbeck) mais um ciclo de compressor
+  fica dentro da faixa, e as excursões sobem, se mantêm e voltam como uma porta deixada aberta, que é o que exercita a
+  lógica de excursão e de retorno do backend.
+- **Execuções reproduzíveis.** O `--seed` alimenta um `SplittableRandom`, dividido uma vez por sensor, então a mesma
+  semente gera a mesma série para cada sensor, independente do escalonamento das threads. Isso facilita reproduzir um
+  bug visto no backend.
+- **Se comporta como um dispositivo.** Ele se autentica com a chave de API do dispositivo, nunca a imprime, cadastra
+  equipamentos que faltam, respeita os limites já gravados no backend, espera um backend que ainda está subindo e
+  continua depois de um envio que falhou em vez de cair.
 
 ### Requisitos
 
