@@ -31,10 +31,14 @@ JDK 25 and a running cold-monitor backend (see its README).
 
 ### Running
 
+The backend only accepts readings from devices that send its `DEVICE_API_KEY`, so pass that key:
+
 ```bash
 ./mvnw package
-java -jar target/cold-monitor-simulator.jar
+java -jar target/cold-monitor-simulator.jar --api-key <DEVICE_API_KEY>
 ```
+
+If the key is missing or wrong, the simulator stops right away and says so.
 
 Example with faster readings and more excursions, for a demo:
 
@@ -58,6 +62,7 @@ Every option can be passed as a flag (`--name value` or `--name=value`) or as an
 | Flag | Variable | Default | Description |
 | --- | --- | --- | --- |
 | `--backend-url` | `COLD_MONITOR_URL` | `http://localhost:8080` | Backend base URL |
+| `--api-key` | `COLD_MONITOR_API_KEY` | none | The backend's `DEVICE_API_KEY`, sent in the `X-API-Key` header |
 | `--interval` | `SIM_INTERVAL` | `5s` | Time between readings of each sensor |
 | `--excursion-probability` | `SIM_EXCURSION_PROBABILITY` | `0.02` | Chance per reading that an excursion starts (0 to 1) |
 | `--equipment` | `SIM_EQUIPMENT_FILE` | bundled list | JSON file with the equipment to simulate |
@@ -95,7 +100,7 @@ defaults to the middle of the range.
 
 ```bash
 docker build -t cold-monitor-simulator .
-docker run --rm cold-monitor-simulator --backend-url http://host.docker.internal:8080 --interval 1s
+docker run --rm cold-monitor-simulator --backend-url http://host.docker.internal:8080 --api-key <DEVICE_API_KEY>
 ```
 
 Options can also be passed as environment variables (`-e SIM_INTERVAL=1s`). The compose file in
@@ -153,10 +158,14 @@ JDK 25 e o backend do cold-monitor rodando (veja o README dele).
 
 ### Como rodar
 
+O backend só aceita leituras de dispositivos que enviam a `DEVICE_API_KEY` dele, então passe essa chave:
+
 ```bash
 ./mvnw package
-java -jar target/cold-monitor-simulator.jar
+java -jar target/cold-monitor-simulator.jar --api-key <DEVICE_API_KEY>
 ```
+
+Se a chave estiver faltando ou errada, o simulador para na hora e avisa.
 
 Exemplo com leituras mais rápidas e mais excursões, para demonstração:
 
@@ -181,6 +190,7 @@ prioridade.
 | Flag | Variável | Padrão | Descrição |
 | --- | --- | --- | --- |
 | `--backend-url` | `COLD_MONITOR_URL` | `http://localhost:8080` | URL base do backend |
+| `--api-key` | `COLD_MONITOR_API_KEY` | nenhuma | A `DEVICE_API_KEY` do backend, enviada no cabeçalho `X-API-Key` |
 | `--interval` | `SIM_INTERVAL` | `5s` | Tempo entre leituras de cada sensor |
 | `--excursion-probability` | `SIM_EXCURSION_PROBABILITY` | `0.02` | Chance, por leitura, de começar uma excursão (0 a 1) |
 | `--equipment` | `SIM_EQUIPMENT_FILE` | lista embutida | Arquivo JSON com os equipamentos a simular |
@@ -218,7 +228,7 @@ vale o meio da faixa.
 
 ```bash
 docker build -t cold-monitor-simulator .
-docker run --rm cold-monitor-simulator --backend-url http://host.docker.internal:8080 --interval 1s
+docker run --rm cold-monitor-simulator --backend-url http://host.docker.internal:8080 --api-key <DEVICE_API_KEY>
 ```
 
 As opções também podem ir como variáveis de ambiente (`-e SIM_INTERVAL=1s`). O compose do
