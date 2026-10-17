@@ -1,0 +1,38 @@
+[
+  {
+    "code": "SIM-FRIDGE-01",
+    "name": "Vaccine fridge",
+    "location": "Pharmacy",
+    "type": "REFRIGERATOR",
+    "minTemperature": 2.0,
+    "maxTemperature": 8.0,
+    "setpoint": 5.0
+  },
+  {
+    "code": "SIM-FRIDGE-02",
+    "name": "Sample fridge",
+    "location": "Clinical lab",
+    "type": "REFRIGERATOR",
+    "minTemperature": 2.0,
+    "maxTemperature": 8.0,
+    "setpoint": 4.5
+  },
+  {
+    "code": "SIM-FREEZER-01",
+    "name": "Plasma freezer",
+    "location": "Blood bank",
+    "type": "FREEZER",
+    "minTemperature": -30.0,
+    "maxTemperature": -18.0,
+    "setpoint": -25.0
+  },
+  {
+    "code": "SIM-COLDROOM-01",
+    "name": "Produce cold room",
+    "location": "Warehouse",
+    "type": "COLD_ROOM",
+    "minTemperature": 0.0,
+    "maxTemperature": 4.0,
+    "setpoint": 2.0
+  }
+]
