@@ -91,13 +91,25 @@ To simulate your own, pass a JSON file with the same shape:
 `type` is one of `REFRIGERATOR`, `FREEZER`, `COLD_ROOM`, `OTHER`. `location` and `setpoint` are optional; the setpoint
 defaults to the middle of the range.
 
+### Docker
+
+```bash
+docker build -t cold-monitor-simulator .
+docker run --rm cold-monitor-simulator --backend-url http://host.docker.internal:8080 --interval 1s
+```
+
+Options can also be passed as environment variables (`-e SIM_INTERVAL=1s`). The compose file in
+[cold-monitor-infra](https://github.com/carloslpv/cold-monitor-infra) runs the simulator next to the rest of the system
+with `--profile simulator`.
+
 ### Tests
 
 ```bash
 ./mvnw test
 ```
 
-The tests do not need the backend: the HTTP client is tested against an in-process fake server.
+The tests do not need the backend: the HTTP client is tested against an in-process fake server. GitHub Actions
+(`.github/workflows/ci.yml`) runs them and builds the Docker image on every push and pull request.
 
 ### Project layout
 
@@ -202,13 +214,25 @@ Para simular os seus, passe um arquivo JSON no mesmo formato:
 `type` aceita `REFRIGERATOR`, `FREEZER`, `COLD_ROOM` ou `OTHER`. `location` e `setpoint` são opcionais; sem setpoint,
 vale o meio da faixa.
 
+### Docker
+
+```bash
+docker build -t cold-monitor-simulator .
+docker run --rm cold-monitor-simulator --backend-url http://host.docker.internal:8080 --interval 1s
+```
+
+As opções também podem ir como variáveis de ambiente (`-e SIM_INTERVAL=1s`). O compose do
+[cold-monitor-infra](https://github.com/carloslpv/cold-monitor-infra) roda o simulador junto com o resto do sistema
+com `--profile simulator`.
+
 ### Testes
 
 ```bash
 ./mvnw test
 ```
 
-Os testes não precisam do backend: o cliente HTTP é testado contra um servidor falso dentro do próprio processo.
+Os testes não precisam do backend: o cliente HTTP é testado contra um servidor falso dentro do próprio processo. O
+GitHub Actions (`.github/workflows/ci.yml`) roda os testes e gera a imagem Docker a cada push e pull request.
 
 ### Estrutura do projeto
 
