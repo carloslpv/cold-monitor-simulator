@@ -11,6 +11,9 @@ it registers a set of equipment in the [cold-monitor backend](https://github.com
 then sends each one a temperature reading on a fixed interval, so the backend, alerts and dashboard have realistic data
 to work with. It also keeps the [public demo](https://github.com/carloslpv/cold-monitor-infra) moving.
 
+For real hardware, [cold-monitor-edge](https://github.com/carloslpv/cold-monitor-edge) has the ESP32 firmware and the MQTT bridge. Both send to the same API, so
+the backend and the dashboard work the same whether a reading came from here or from a probe.
+
 The architecture diagram, screenshots and an overview of the whole system are in
 [cold-monitor-infra](https://github.com/carloslpv/cold-monitor-infra).
 
@@ -164,6 +167,9 @@ frias: cadastra um conjunto de equipamentos no [backend do cold-monitor](https:/
 e depois envia, para cada um, uma leitura de temperatura em intervalo fixo, para que o backend, os alertas e o dashboard
 tenham dados realistas para trabalhar. É ele também que mantém a
 [demo pública](https://github.com/carloslpv/cold-monitor-infra) em movimento.
+
+Para hardware real, o [cold-monitor-edge](https://github.com/carloslpv/cold-monitor-edge) tem o firmware do ESP32 e a ponte MQTT. Os dois enviam para a mesma
+API, então o backend e o dashboard funcionam igual, venha a leitura daqui ou de uma sonda.
 
 O diagrama de arquitetura, os screenshots e a visão geral do sistema inteiro estão no
 [cold-monitor-infra](https://github.com/carloslpv/cold-monitor-infra).
